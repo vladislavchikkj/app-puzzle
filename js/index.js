@@ -1,3 +1,4 @@
+const GAME_STATE_KEY = 'gameState'
 
 let puzzle = document.createElement('div');
 puzzle.className = "puzzle";
@@ -50,7 +51,17 @@ game.append(sizes);
 
     let otherSize = document.createElement('div');
     otherSize.className = "Time";
-    otherSize.appendChild(document.createTextNode('Other sizes: ' + '3x3 ' + '4x4 ' + '5x5 ' + '6x6 ' + '7x7 ' + '8x8'));
+    const possibleMatrixSize = ['3x3 ', '4x4 ', '5x5 ', '6x6 ', '7x7 ', '8x8 '];
+    otherSize.appendChild(document.createTextNode('Other sizes: '));
+    possibleMatrixSize.forEach((el, i) => {
+        const matrixSize = document.createElement('span');
+        matrixSize.classList.add(`size${i}`);
+        matrixSize.dataset.sizeId = Math.pow(+parseInt(el), 2);
+        
+        const matrixSizeContent = document.createTextNode(el);
+        matrixSize.appendChild(matrixSizeContent);
+        otherSize.appendChild(matrixSize);
+    })
     sizes.append(otherSize);
 
 
@@ -65,7 +76,7 @@ stop.appendChild(document.createTextNode('Stop'));
 menu.append(stop);
 
 let save = document.createElement('button');
-save.className = "buttonShuffele";
+save.className = "buttonShuffele saveBtn";
 save.appendChild(document.createTextNode('Save'));
 menu.append(save);
 
@@ -91,17 +102,25 @@ for(let i = 1; i <= value.length; i++){
 }
 container.append(fifteen);
 
-// blocks ---^
 
+
+// blocks ---^
+let timerId;
 const itemNodes = Array.from(fifteen.querySelectorAll('.item'));
 const countItems = 16;
 
 //  1. position
 
 itemNodes[countItems - 1].style.display = 'none';
-let matrix = getMatrix(
+let matrix;
+if(isGameStateStored()) {
+    matrix = getGameStateFromStorage();
+} else{
+    matrix = getMatrix(
     itemNodes.map((item) => +(item.dataset.matrixId))
-);
+    );
+}
+    
 
 setPositionItems(matrix);
 
@@ -137,6 +156,11 @@ buttonShuffele.addEventListener('click', () => {
             randomSwap(matrix);
             setPositionItems(matrix);
             resetCounter();
+            stopInterval();
+            
+            let Minutes = 0,
+            display = document.querySelector('.timerClock');
+            timerId =  startTimer(Minutes, display);
             
             shuffleCount+=1;
             if(shuffleCount >= MaxShuffleCount){
@@ -147,6 +171,32 @@ buttonShuffele.addEventListener('click', () => {
         }, 20) 
     }
 })
+
+stop.addEventListener('click', () => {
+    stopInterval();
+})
+
+save.addEventListener('click', () => {
+    stopInterval();
+    storeGameState();
+})
+
+// document.querySelector('.size2').addEventListener('click', (event) => {
+//     const matrixSize = event.target.dataset.sizeId;
+//     value = new Array(matrixSize).fill(0).map((item, index) => index + 1);
+//     matrix = getMatrix(value, matrixSize/matrixSize);
+//     console.log(matrixSize);
+
+//     container.removeChild(fifteen);
+//     for(let i = 1; i <= value.length; i++){
+//         let button = document.createElement('button');
+//         button.className = "item";
+//         button.dataset.matrixId = i;
+//         button.appendChild(document.createTextNode(i));
+//         fifteen.append(button);
+//     }
+//     container.append(fifteen);
+// })
 
 document.addEventListener('keydown', function(event) {
     if (event.code == 'KeyR') {
@@ -174,7 +224,7 @@ document.addEventListener('keydown', function(event) {
 
     
 //  3. Change position by click
-const blankNumber = 16;
+let blankNumber = 16;
 fifteen.addEventListener('click', (event) => {
     if(shuffled){
         return
@@ -193,7 +243,7 @@ fifteen.addEventListener('click', (event) => {
     if(isValid){
       swap(blankCoords, buttonCoords, matrix);
       setPositionItems(matrix); 
-      sumMoves()
+      sumMoves();
     }
 })
 
@@ -235,7 +285,7 @@ fifteen.addEventListener('click', (event) => {
         }
         swap(blankCoords, buttonCoords, matrix);
         setPositionItems(matrix); 
-        sumMoves()
+        sumMoves();
     })
 
 //  5. Show winner
@@ -275,8 +325,13 @@ function FindValidCoords({ blankCoords, matrix, blockedCoords}) {
     return validCoords;
 }
 
-function getMatrix(arr) {
-    const matrix = [[], [], [], []];
+function getMatrix(arr, matrixSize) {
+    let matrix = [];
+    if(matrixSize){
+        matrix = new Array(matrixSize).fill([])
+    }else {
+        matrix = [[], [], [], []];
+    }
     let y = 0;
     let x = 0;
 
@@ -336,6 +391,7 @@ function swap(coords1, coords2, matrix){
 
     if(isWon(matrix)){
         addWonClass();
+        stopInterval();
     }
 }
 
@@ -378,8 +434,9 @@ function resetCounter() {
 
 
 function startTimer(duration, display) {
-    var timer = duration, minutes, seconds;
-    setInterval(function () {
+    
+    let timer = duration, minutes, seconds;
+    return setInterval(function () {
         minutes = parseInt(timer / 60, 10)
         seconds = parseInt(timer % 60, 10);
 
@@ -395,11 +452,29 @@ function startTimer(duration, display) {
 }
 
 window.onload = function () {
-    var Minutes = 0,
+    let Minutes = 0,
         display = document.querySelector('.timerClock');
-    startTimer(Minutes, display);
+    timerId =  startTimer(Minutes, display);
+    console.log(isGameStateStored());
 };
 
+function stopInterval() {
+    clearInterval(timerId);
+}
+
+function storeGameState() {
+    const currentMatrixJSON = JSON.stringify(matrix);
+    localStorage.setItem(GAME_STATE_KEY, currentMatrixJSON);
+}
+
+function isGameStateStored() {
+    return !!localStorage.getItem(GAME_STATE_KEY);
+}
+
+function getGameStateFromStorage() {
+    return JSON.parse(localStorage.getItem(GAME_STATE_KEY));
+}
 
     
 
+///////////////////
