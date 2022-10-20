@@ -91,8 +91,6 @@ for(let i = 1; i <= value.length; i++){
 }
 container.append(fifteen);
 
-
-
 // blocks ---^
 
 const itemNodes = Array.from(fifteen.querySelectorAll('.item'));
