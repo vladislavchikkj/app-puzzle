@@ -34,6 +34,7 @@ game.append(submenu);
         let timerClock = document.createElement('div');
         timerClock.className = "timerClock";
         timerClock.appendChild(document.createTextNode(0));
+        timerClock.dataset.matrixId = 'timerC';
         time.append(timerClock);
 
 let container = document.createElement('div');
@@ -103,9 +104,52 @@ for(let i = 1; i <= value.length; i++){
 container.append(fifteen);
 
 
-
 // blocks ---^
+
+// pop-up ---`/
+
+let popUp = document.createElement('div');
+popUp.className = "pop-up";
+game.append(popUp);
+    let btnClosePop = document.createElement('div');
+    btnClosePop.className = "btnClosePop";
+    btnClosePop.appendChild(document.createTextNode('+'));
+    popUp.append(btnClosePop);
+
+    let textWon = document.createElement('div');
+    textWon.className = "textWon";
+    textWon.appendChild(document.createTextNode('Hooray! You solved the puzzle in '));
+
+        let timePopUp = document.createElement('div');
+        timePopUp.className = "timePopUp";
+        timePopUp.appendChild(document.createTextNode('##:##'));
+        textWon.append(timePopUp);
+
+    textWon.appendChild(document.createTextNode('and'));
+
+        let movesPopUp = document.createElement('div');
+        movesPopUp.className = "counterPop-up";
+        movesPopUp.appendChild(document.createTextNode('0'));
+        textWon.append(movesPopUp);
+
+    textWon.appendChild(document.createTextNode(' moves!'));
+    popUp.append(textWon);
+
+    let buttonShuffelePopUp = document.createElement('button');
+    buttonShuffelePopUp.className = "buttonShuffele btnPop-up";
+    buttonShuffelePopUp.appendChild(document.createTextNode('Shuffle and start'));
+    popUp.append(buttonShuffelePopUp);
+
+let blurForPopUp = document.createElement('div');
+blurForPopUp.className = "blur";
+document.body.append(blurForPopUp);
+
+// pop-up results
+
+//
+
 let timerId;
+let timerIdPop;
 const itemNodes = Array.from(fifteen.querySelectorAll('.item'));
 const countItems = 16;
 
@@ -136,7 +180,7 @@ setPositionItems(matrix);
 const MaxShuffleCount = 100;
 let timer;
 let shuffled = false;
-const shuffledClassName = 'gameShauffle'
+const shuffledClassName = 'gameShauffle';
 let sumMovesResult = 0;
 
 buttonShuffele.addEventListener('click', () => {
@@ -170,6 +214,114 @@ buttonShuffele.addEventListener('click', () => {
             }
         }, 20) 
     }
+})
+
+buttonShuffelePopUp.addEventListener('click', () => {
+    // 1. Реализация randomSwap
+    // randomSwap(matrix);
+    // setPositionItems(matrix);
+    // 1. Вызов randomSwap n-раз
+    popUp.style.display = 'none';
+    blurForPopUp.style.display = 'none';
+
+    shuffled = true;
+    let shuffleCount = 0;
+    clearInterval(timer);
+    game.classList.add(shuffledClassName);
+
+    if(shuffleCount === 0) {
+        timer = setInterval(() => {
+            
+            randomSwap(matrix);
+            setPositionItems(matrix);
+            resetCounter();
+            stopInterval();
+            
+            let Minutes = 0,
+            display = document.querySelector('.timerClock');
+            timerId =  startTimer(Minutes, display);
+            
+            shuffleCount+=1;
+            if(shuffleCount >= MaxShuffleCount){
+                game.classList.remove(shuffledClassName);
+                clearInterval(timer);
+                shuffled = false;
+            }
+        }, 20) 
+    }
+})
+
+btnClosePop.addEventListener('click', () => {
+    popUp.style.display = 'none';
+    blurForPopUp.style.display = 'none';
+
+    popUp.style.display = 'none';
+    blurForPopUp.style.display = 'none';
+
+    shuffled = true;
+    let shuffleCount = 0;
+    clearInterval(timer);
+    game.classList.add(shuffledClassName);
+
+    if(shuffleCount === 0) {
+        timer = setInterval(() => {
+            
+            randomSwap(matrix);
+            setPositionItems(matrix);
+            resetCounter();
+            stopInterval();
+            
+            let Minutes = 0,
+            display = document.querySelector('.timerClock');
+            timerId =  startTimer(Minutes, display);
+            
+            shuffleCount+=1;
+            if(shuffleCount >= MaxShuffleCount){
+                game.classList.remove(shuffledClassName);
+                clearInterval(timer);
+                shuffled = false;
+            }
+        }, 20) 
+    }
+})
+
+blurForPopUp.addEventListener('click', () => {
+    popUp.style.display = 'none';
+    blurForPopUp.style.display = 'none';
+
+    shuffled = true;
+    let shuffleCount = 0;
+    clearInterval(timer);
+    game.classList.add(shuffledClassName);
+
+    if(shuffleCount === 0) {
+        timer = setInterval(() => {
+            
+            randomSwap(matrix);
+            setPositionItems(matrix);
+            resetCounter();
+            stopInterval();
+            
+            let Minutes = 0,
+            display = document.querySelector('.timerClock');
+            timerId =  startTimer(Minutes, display);
+            
+            shuffleCount+=1;
+            if(shuffleCount >= MaxShuffleCount){
+                game.classList.remove(shuffledClassName);
+                clearInterval(timer);
+                shuffled = false;
+            }
+        }, 20) 
+    }
+})
+
+results.addEventListener('click', () => {
+    popUp.style.display = 'flex';
+    blurForPopUp.style.display = 'block';
+    buttonShuffelePopUp.classList.add('hide')
+    textWon.classList.add('hide')
+
 })
 
 stop.addEventListener('click', () => {
@@ -246,6 +398,7 @@ fifteen.addEventListener('click', (event) => {
       sumMoves();
     }
 })
+
 
 //  4. Change position by keydown
 
@@ -411,7 +564,11 @@ const wonClass = 'fifteenWon'
 function addWonClass() {
     setTimeout(() => {
         fifteen.classList.add(wonClass);
-
+        popUp.style.display = 'flex';
+        blurForPopUp.style.display = 'block';
+        let txt = timerClock.textContent || timerClock.innerText;
+        document.querySelector('.timePopUp').innerHTML = txt;
+        console.log(txt);
         setTimeout(() => {
             fifteen.classList.remove(wonClass);
             resetCounter();
@@ -424,6 +581,9 @@ function sumMoves(){
     // Moves.appendChild(document.createTextNode(sumMovesResult));
         sumMovesResult+=1;
         document.querySelector(".counter").innerHTML = sumMovesResult;
+        document.querySelector(".counterPop-up").innerHTML = sumMovesResult;
+        
+        
         
 }
 
@@ -436,6 +596,7 @@ function resetCounter() {
 function startTimer(duration, display) {
     
     let timer = duration, minutes, seconds;
+    console.log(timer);
     return setInterval(function () {
         minutes = parseInt(timer / 60, 10)
         seconds = parseInt(timer % 60, 10);
@@ -454,10 +615,8 @@ function startTimer(duration, display) {
 window.onload = function () {
     let Minutes = 0,
         display = document.querySelector('.timerClock');
-    timerId =  startTimer(Minutes, display);
-    console.log(isGameStateStored());
+        timerId =  startTimer(Minutes, display);
 };
-
 function stopInterval() {
     clearInterval(timerId);
 }
